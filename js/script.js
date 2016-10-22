@@ -1,6 +1,9 @@
 window.onload = function() {
-    var basicUrlRequest = 'https://en.wikipedia.org/w/api.php?action=opensearch&format=json&search=';
-    var basicThumbnailRequest = 'https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&pilimit=10&pithumbsize=100&indexpageids=&format=json&titles=';
+    var basicUrlRequest = 'https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&utf8=1&srsearch=';
+    var basicRandomPageRequest = 'https://en.wikipedia.org/w/api.php?action=query&format=json&list=random&rnnamespace=0&rnlimit=10';
+    var basicInfoRequest = 'https://en.wikipedia.org/w/api.php?action=query&format=json&indexpageids=1&pilimit=10&pithumbsize=100&prop=pageimages%7Cextracts%7Cinfo&exintro=1&explaintext=1&exlimit=max&inprop=url&titles=';
+    var basicPageIdRequest = 'https://en.wikipedia.org/w/api.php?action=query&indexpageids=&format=json&titles=';
+
     var callback = '&callback=?';
     var previousSearchWord = '';
     var searchWord;
@@ -10,10 +13,14 @@ window.onload = function() {
         if (previousSearchWord == searchWord) {
             previousSearchWord = searchWord;
         } else {
-            search();
             previousSearchWord = searchWord;
+            search();
         }
-    }, 2500);
+    }, 1500);
+
+    document.getElementById('randomPageButton').onclick = function() {
+        fetchData('', true);
+    };
 
     document.getElementById('searchInput').onkeydown = function(e) {
         if (e.keyCode == 13) {
@@ -23,76 +30,82 @@ window.onload = function() {
 
     document.getElementById('searchButton').onclick = function() {
         search();
-    }
+    };
 
     function search() {
         searchWord = document.getElementById('searchInput').value;
         if (searchWord == '') {
             removePreviousResults();
+        } else {
+            fetchData(searchWord);
         }
-        fetchData(searchWord);
     }
 
-    function fetchData(searchWord) {
-        if (searchWord) {
-            var fullRequest = basicUrlRequest + searchWord + callback;
-            var titlesForThumbnailQuery = '';
-            $.getJSON(fullRequest, function(data) {
-                for (var i = 0; i < data[1].length; i++) {
-                    titlesForThumbnailQuery += data[1][i] + '|';
+    //jumping through hoops and loops just to make the API work
+    function fetchData(searchWord, randomPage) {
+        var fullRequest;
+        var pages = [];
+        var titlesForInfoRequest = '';
+        var searchOrRandom;
+
+        if (randomPage) {
+            fullRequest = basicRandomPageRequest + callback;
+            searchOrRandom = 'random';
+        } else {
+            fullRequest = basicUrlRequest + searchWord + callback;
+            searchOrRandom = 'search';
+        }
+
+        $.getJSON(fullRequest, function(data) {
+            var titleArray = data.query[searchOrRandom];
+            for (var i = 0; i < data.query[searchOrRandom].length; i++) {
+                titlesForInfoRequest += titleArray[i].title + '|';
+                pages.push({
+                    'id': titleArray[i].id,
+                    'title': titleArray[i].title
+                });
+            } //this is redundant for random pages, but needed for list search. (I hate wikipedia API honestly)
+            $.getJSON(basicPageIdRequest + titlesForInfoRequest + callback, function(pageIds) {
+                for (var i = 0; i < pages.length; i++) {
+                    for (var key in pageIds.query.pages) {
+                        if (pageIds.query.pages[key].title == pages[i].title) {
+                            pages[i].id = pageIds.query.pages[key].pageid;
+                        }
+                    }
                 }
-                $.getJSON(basicThumbnailRequest + titlesForThumbnailQuery + callback, function(thumbnailData) {
-                    organiseData(data, thumbnailData);
+                $.getJSON(basicInfoRequest + titlesForInfoRequest + callback, function(indepthData) {
+                    var currentPageId;
+                    for (var i = 0; i < pages.length; i++) {
+                        currentPageId = pages[i].id;
+                        if (indepthData.query.pages[currentPageId].hasOwnProperty('extract')) {
+                            pages[i].extract = indepthData.query.pages[currentPageId].extract;
+                        }
+                        if (indepthData.query.pages[currentPageId].hasOwnProperty('thumbnail')) {
+                            pages[i].thumbnailsrc = indepthData.query.pages[currentPageId].thumbnail.source;
+                        }
+                        if (indepthData.query.pages[currentPageId].hasOwnProperty('fullurl')) {
+                            pages[i].url = indepthData.query.pages[currentPageId].fullurl;
+                        }
+                    }
+                    displayResults(pages);
                 });
             });
-        }
+        });
     }
 
-    function organiseData(searchQueryData, thumbnailQueryData) {
-        var collectionData = {
-            'titleData': [],
-            'infoData': [],
-            'pageURLData': [],
-            'thumbnailInfo': {}
-        };
 
-        for (var i = 0; i < searchQueryData[1].length; i++) {
-            collectionData.titleData[i] = searchQueryData[1][i];
-            collectionData.infoData[i] = searchQueryData[2][i];
-            collectionData.pageURLData[i] = searchQueryData[3][i];
-        }
-
-        var idArray = thumbnailQueryData.query.pageids;
-        var thumbnailTitle;
-        var thumbnailSrc;
-
-        for (var i = 0; i < idArray.length; i++) {
-            if (idArray[i] != -1) {
-                if (thumbnailQueryData.query.pages[idArray[i]].hasOwnProperty('thumbnail')) {
-                    thumbnailTitle = thumbnailQueryData.query.pages[idArray[i]].title;
-                    thumbnailSrc = thumbnailQueryData.query.pages[idArray[i]].thumbnail.source;
-                    collectionData.thumbnailInfo[thumbnailTitle] = thumbnailSrc;
-                }
-            }
-        }
-        displayResults(collectionData);
-    }
-
-    function displayResults(dataCollection) {
-
+    function displayResults(pages) {
         var resultList = document.getElementById("resultList");
         removePreviousResults(resultList);
 
-        for (var i = 0; i < dataCollection.titleData.length; i++) {
-
-            var titleData = dataCollection.titleData[i];
-            var infoData = dataCollection.infoData[i];
-            var pageURLData = dataCollection.pageURLData[i];
+        for (var i = 0; i < pages.length; i++) {
+            var titleData = pages[i].title;
+            var infoData = pages[i].extract;
+            var pageURLData = pages[i].url;
             var thumbnailSource = 'http://res.cloudinary.com/forgoroe/image/upload/c_scale,w_100/v1476883031/logos/2000px-Wikipedia-logo-v2-en.svg.png';
-            if (dataCollection.thumbnailInfo[titleData]) {
-                thumbnailSource = dataCollection.thumbnailInfo[titleData];
+            if (pages[i].thumbnailsrc) {
+                thumbnailSource = pages[i].thumbnailsrc;
             }
-            //  var thumbnailSrc = dataCollection.thumbnailInfo[titleData].thumbnailSrc;
 
             var liElement = document.createElement("li");
             var anchorElement = document.createElement("a");
@@ -104,12 +117,14 @@ window.onload = function() {
             var infoNode = document.createTextNode(infoData);
 
             anchorElement.href = pageURLData;
+            anchorElement.setAttribute('target', '_blank')
             liElement.className = 'list-group-item clearfix';
-
             h2Element.className = 'list-group-item-heading';
+
             pElement.className = 'list-group-item-text';
             p2Element.className = 'list-group-item-text';
             p2Element.style = 'margin-top:6px; margin-bottom:6px;';
+
             h2Element.innerHTML = '<span style="padding-right:3px; padding-top: 3px; display:inline-block;">' +
                 '<img src="' + thumbnailSource + '"></span>';
             p2Element.innerHTML = '<button type="button" class="btn btn-default btn-sm">' +
@@ -126,17 +141,14 @@ window.onload = function() {
             liElement.appendChild(pElement);
             resultList.appendChild(liElement);
 
-            //this closure is kinda awesome. I'm so smart (after 50 tries)
             document.getElementsByClassName('btn btn-default btn-sm')[i].onclick = (function() {
-                var currentSrc = dataCollection.pageURLData[i];
+                var currentSrc = pages[i].url;
                 return function() {
                     var iframe = document.getElementsByTagName('iframe')[0];
                     iframe.removeAttribute('hidden');
                     iframe.src = currentSrc;
                 }
-            }(dataCollection.pageURLData[i]));
-
-
+            }(pages[i].url));
         }
     }
 
