@@ -24,6 +24,7 @@ window.onload = function() {
 
     document.getElementById('searchInput').onkeydown = function(e) {
         if (e.keyCode == 13) {
+            search();
             return false;
         }
     };
@@ -43,6 +44,8 @@ window.onload = function() {
 
     //jumping through hoops and loops just to make the API work
     function fetchData(searchWord, randomPage) {
+        $('#resultList').hide(100);
+        $('iframe').hide(100);
         var fullRequest;
         var pages = [];
         var titlesForInfoRequest = '';
@@ -141,15 +144,22 @@ window.onload = function() {
             liElement.appendChild(pElement);
             resultList.appendChild(liElement);
 
+
             document.getElementsByClassName('btn btn-default btn-sm')[i].onclick = (function() {
                 var currentSrc = pages[i].url;
                 return function() {
+
+                    $('iframe').hide(100);
                     var iframe = document.getElementsByTagName('iframe')[0];
-                    iframe.removeAttribute('hidden');
                     iframe.src = currentSrc;
+                    $('iframe').show(500);
+                    $('html, body').animate({
+                        scrollTop: $("#preview").offset().top
+                    }, 2000);
                 }
             }(pages[i].url));
         }
+        $(resultList).show(500);
     }
 
     function removePreviousResults(results) {
@@ -160,7 +170,7 @@ window.onload = function() {
         }
         if (document.getElementsByTagName('iframe')[0]) {
             var iframe = document.getElementsByTagName('iframe')[0];
-            iframe.src = '#';
+            iframe.src = '';
             iframe.setAttribute('hidden', true);
         }
     }
