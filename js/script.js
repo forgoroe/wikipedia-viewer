@@ -9,33 +9,45 @@ window.onload = function() {
     var searchWord;
 
     setInterval(function() {
-        searchWord = document.getElementById('searchInput').value;
-        if (previousSearchWord == searchWord) {
-            previousSearchWord = searchWord;
-        } else {
-            previousSearchWord = searchWord;
-            search();
-        }
+      if(checkInput()){
+        search();
+      }
     }, 1500);
 
     document.getElementById('searchInput').onkeydown = function(e) {
         if (e.keyCode == 13) {
+          if(checkInput()){
             search();
+          }
             return false;
         }
     };
 
     document.getElementById('searchButton').onclick = function() {
+      if(checkInput()){
         search();
+      }
     };
 
     document.getElementById('randomPageButton').onclick = function() {
         fetchData('', true);
     };
 
-    document.getElementById('resetButton').onclick = function(){
-      var resultList = document.getElementById('resultList');
-      removePreviousResults(resultList);
+    document.getElementById('resetButton').onclick = function() {
+        var resultList = document.getElementById('resultList');
+        removePreviousResults(resultList);
+    }
+
+    function checkInput(){
+      searchWord = document.getElementById('searchInput').value;
+      if (previousSearchWord == searchWord) {
+
+          previousSearchWord = searchWord;
+          return false;
+      } else {
+          previousSearchWord = searchWord;
+          return true;
+      }
     }
 
     function search() {
@@ -47,7 +59,6 @@ window.onload = function() {
             fetchData(searchWord);
         }
     }
-
     //jumping through hoops and loops just to make the API work
     function fetchData(searchWord, randomPage) {
         $('#resultList').hide(100);
@@ -144,25 +155,22 @@ window.onload = function() {
             pElement.appendChild(p2Element);
             pElement.appendChild(infoNode);
 
-
             liElement.appendChild(anchorElement);
             liElement.appendChild(pElement);
             resultList.appendChild(liElement);
 
-
             document.getElementsByClassName('btn btn-default btn-sm')[i].onclick = (function() {
                 var currentSrc = pages[i].url;
                 return function() {
-
                     $('iframe').hide(100);
                     var iframe = document.getElementsByTagName('iframe')[0];
                     iframe.src = currentSrc;
                     $('iframe').show(500);
-                  //  if(window.isMobile = /iphone|ipod|ipad|android|blackberry|opera mini|opera mobi|skyfire|maemo|windows phone|palm|iemobile|symbian|symbianos|fennec/i.test(navigator.userAgent.toLowerCase())){
-                      $('html, body').animate({
-                          scrollTop: $("#preview").offset().top
-                      }, 2000);
-                  //  }
+                    //  if(window.isMobile = /iphone|ipod|ipad|android|blackberry|opera mini|opera mobi|skyfire|maemo|windows phone|palm|iemobile|symbian|symbianos|fennec/i.test(navigator.userAgent.toLowerCase())){
+                    $('html, body').animate({
+                        scrollTop: $("#preview").offset().top
+                    }, 2000);
+                    //  }
                 }
             }(pages[i].url));
         }
@@ -171,18 +179,17 @@ window.onload = function() {
 
     function removePreviousResults(resultList) {
         if (resultList.hasChildNodes()) {
-          $(resultList).hide(300, function(){
-            while (resultList.firstChild) {
-                resultList.removeChild(resultList.firstChild);
-            }
-          });
+            $(resultList).hide(300, function() {
+                while (resultList.firstChild) {
+                    resultList.removeChild(resultList.firstChild);
+                }
+            });
         }
         if (document.getElementsByTagName('iframe')[0]) {
             var iframe = document.getElementsByTagName('iframe')[0];
-            $('iframe').hide(300, function(){
-              iframe.src = '';
+            $('iframe').hide(300, function() {
+                iframe.src = '';
             });
         }
     }
-
 }
