@@ -18,10 +18,6 @@ window.onload = function() {
         }
     }, 1500);
 
-    document.getElementById('randomPageButton').onclick = function() {
-        fetchData('', true);
-    };
-
     document.getElementById('searchInput').onkeydown = function(e) {
         if (e.keyCode == 13) {
             search();
@@ -33,10 +29,20 @@ window.onload = function() {
         search();
     };
 
+    document.getElementById('randomPageButton').onclick = function() {
+        fetchData('', true);
+    };
+
+    document.getElementById('resetButton').onclick = function(){
+      var resultList = document.getElementById('resultList');
+      removePreviousResults(resultList);
+    }
+
     function search() {
-        searchWord = document.getElementById('searchInput').value;
+        var searchWord = document.getElementById('searchInput').value;
+        var resultList = document.getElementById('resultList');
         if (searchWord == '') {
-            removePreviousResults();
+            removePreviousResults(resultList);
         } else {
             fetchData(searchWord);
         }
@@ -96,7 +102,6 @@ window.onload = function() {
         });
     }
 
-
     function displayResults(pages) {
         var resultList = document.getElementById("resultList");
         removePreviousResults(resultList);
@@ -153,25 +158,30 @@ window.onload = function() {
                     var iframe = document.getElementsByTagName('iframe')[0];
                     iframe.src = currentSrc;
                     $('iframe').show(500);
-                    $('html, body').animate({
-                        scrollTop: $("#preview").offset().top
-                    }, 2000);
+                  //  if(window.isMobile = /iphone|ipod|ipad|android|blackberry|opera mini|opera mobi|skyfire|maemo|windows phone|palm|iemobile|symbian|symbianos|fennec/i.test(navigator.userAgent.toLowerCase())){
+                      $('html, body').animate({
+                          scrollTop: $("#preview").offset().top
+                      }, 2000);
+                  //  }
                 }
             }(pages[i].url));
         }
         $(resultList).show(500);
     }
 
-    function removePreviousResults(results) {
+    function removePreviousResults(resultList) {
         if (resultList.hasChildNodes()) {
+          $(resultList).hide(300, function(){
             while (resultList.firstChild) {
                 resultList.removeChild(resultList.firstChild);
             }
+          });
         }
         if (document.getElementsByTagName('iframe')[0]) {
             var iframe = document.getElementsByTagName('iframe')[0];
-            iframe.src = '';
-            iframe.setAttribute('hidden', true);
+            $('iframe').hide(300, function(){
+              iframe.src = '';
+            });
         }
     }
 
