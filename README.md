@@ -6,7 +6,7 @@ Still a work in progress, but getting closer to completion. This small web app s
 
 ![preview](http://res.cloudinary.com/forgoroe/image/upload/c_scale,w_1034/v1477234887/previews/wikipedia_viewer_preview_2.png)
 
-Either download the project or take a quick look on [github preview](http://htmlpreview.github.io/?https://github.com/forgoroe/wikipedia-viewer/blob/master/index.html).
+Either download the project or take a quick look on [github pages](https://forgoroe.github.io/wikipedia-viewer/).
 
 ##Motivation
 
