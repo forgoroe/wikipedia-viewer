@@ -1,6 +1,6 @@
 window.onload = function() {
     var basicUrlRequest = 'https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&utf8=1&srsearch=';
-    var basicRandomPageRequest = 'https://en.wikipedia.org/w/api.php?action=query&format=json&list=random&rnnamespace=0&rnlimit=10';
+    var basicRandomPageRequest = 'https://en.wikipedia.org/w/api.php?action=query&format=json&list=random&rnnamespace=0&rnlimit=1';
     var basicInfoRequest = 'https://en.wikipedia.org/w/api.php?action=query&format=json&indexpageids=1&pilimit=10&pithumbsize=100&prop=pageimages%7Cextracts%7Cinfo&exintro=1&explaintext=1&exlimit=max&inprop=url&titles=';
     var basicPageIdRequest = 'https://en.wikipedia.org/w/api.php?action=query&indexpageids=&format=json&titles=';
 
@@ -9,24 +9,24 @@ window.onload = function() {
     var searchWord;
 
     setInterval(function() {
-      if(checkInput()){
-        search();
-      }
+        if (checkInput()) {
+            search();
+        }
     }, 1500);
 
     document.getElementById('searchInput').onkeydown = function(e) {
         if (e.keyCode == 13) {
-          if(checkInput()){
-            search();
-          }
+            if (checkInput()) {
+                search();
+            }
             return false;
         }
     };
 
     document.getElementById('searchButton').onclick = function() {
-      if(checkInput()){
-        search();
-      }
+        if (checkInput()) {
+            search();
+        }
     };
 
     document.getElementById('randomPageButton').onclick = function() {
@@ -38,16 +38,24 @@ window.onload = function() {
         removePreviousResults(resultList);
     }
 
-    function checkInput(){
-      searchWord = document.getElementById('searchInput').value;
-      if (previousSearchWord == searchWord) {
+    function checkInput() {
+        searchWord = document.getElementById('searchInput').value;
+        if (previousSearchWord == searchWord) {
 
-          previousSearchWord = searchWord;
-          return false;
-      } else {
-          previousSearchWord = searchWord;
-          return true;
-      }
+            previousSearchWord = searchWord;
+            return false;
+        } else {
+            previousSearchWord = searchWord;
+            return true;
+        }
+    }
+
+    function scrollToResults() {
+        if (window.isMobile = /iphone|ipod|ipad|android|blackberry|opera mini|opera mobi|skyfire|maemo|windows phone|palm|iemobile|symbian|symbianos|fennec/i.test(navigator.userAgent.toLowerCase())) {
+            $('html, body').animate({
+                scrollTop: $("#resultList").offset().top
+            }, 2000);
+        }
     }
 
     function search() {
@@ -57,6 +65,7 @@ window.onload = function() {
             removePreviousResults(resultList);
         } else {
             fetchData(searchWord);
+
         }
     }
     //jumping through hoops and loops just to make the API work
@@ -84,7 +93,7 @@ window.onload = function() {
                     'id': titleArray[i].id,
                     'title': titleArray[i].title
                 });
-            } //this is redundant for random pages, but needed for list search. (I hate wikipedia API honestly)
+            }
             $.getJSON(basicPageIdRequest + titlesForInfoRequest + callback, function(pageIds) {
                 for (var i = 0; i < pages.length; i++) {
                     for (var key in pageIds.query.pages) {
@@ -175,6 +184,7 @@ window.onload = function() {
             }(pages[i].url));
         }
         $(resultList).show(500);
+        scrollToResults();
     }
 
     function removePreviousResults(resultList) {
