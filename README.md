@@ -1,4 +1,4 @@
-#Wikipedia-viewer
+# Wikipedia-viewer
 
 Search for [wikipedia](https://www.wikipedia.org/) entries, get an embedded preview or query a random wikipedia page.
 
@@ -8,11 +8,11 @@ Still a work in progress, but getting closer to completion. This small web app s
 
 Either download the project or take a quick look on [github pages](https://forgoroe.github.io/wikipedia-viewer/).
 
-##Motivation
+## Motivation
 
 This project was made by following the FreeCodeCamp user stories for the [wikipedia-viewer](https://www.freecodecamp.com/challenges/build-a-wikipedia-viewer) project and by implementing a few of my own other ideas.
 
-##Resources and APIs
+## Resources and APIs
 
 - [Bootstrap](http://getbootstrap.com/)
 - [jQuery](https://jquery.com/) (very little of it)
