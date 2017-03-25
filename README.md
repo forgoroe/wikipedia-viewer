@@ -2,7 +2,7 @@
 
 Search for [wikipedia](https://www.wikipedia.org/) entries, get an embedded preview or query a random wikipedia page.
 
-Still a work in progress, but getting closer to completion. This small web app should be viewable both on desktop and mobile devices, hence the preview:
+This small web app should be viewable both on desktop and mobile devices, hence the preview:
 
 ![preview](http://res.cloudinary.com/forgoroe/image/upload/c_scale,w_1034/v1477234887/previews/wikipedia_viewer_preview_2.png)
 
